@@ -6,7 +6,7 @@ EXPOSE 443
 FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
 COPY ["rest-api.csproj", ""]
-RUN dotnet restore "/rest-api.csproj"
+RUN dotnet restore "rest-api.csproj"
 COPY . .
 WORKDIR "/src/"
 RUN dotnet build "rest-api.csproj" -c Release -o /app
