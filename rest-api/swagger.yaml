@@ -1,0 +1,148 @@
+﻿swagger: "2.0"
+info:
+  description: "This is a simple location geotagging API.  You can post, delete, and search for locations given a set of GPS coordinates."
+  version: "0.0.1"
+  title: "Location Api Prototype"
+  contact:
+    email: "chidozie.nwobilor@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/v1"
+tags:
+- name: "location"
+  description: "associate text with locations"
+  externalDocs:
+    description: "Find out more"
+    url: "https://github.com/dagclo/location-app-prototype"
+- name: "search"
+  description: "Search for locations given lat and long"
+schemes:
+- "https"
+paths:
+  /location:
+    post:
+      tags:
+      - "location"
+      summary: "Add a new location"
+      description: ""
+      operationId: "add location"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Location To Search for"
+        required: true
+        schema:
+          $ref: "#/definitions/Location"
+      responses:
+        405:
+          description: "Invalid input"
+  /location/{location_id}:
+    get:
+      tags:
+      - "location"
+      summary: "Find pet by ID"
+      description: "Returns a Location and its data"
+      operationId: "getLocationById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "location_id"
+        in: "path"
+        description: "ID of location"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Location"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Location not found"
+    delete:
+      tags:
+      - "location"
+      summary: "Deletes a location"
+      description: ""
+      operationId: "deletePet"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "location_id"
+        in: "path"
+        description: "location id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Pet not found"
+  /location/findByCoordinates:
+    get:
+      tags:
+      - "location"
+      - "search"
+      summary: "Finds Pets by tags"
+      description: "find tagged locations using latitude, longitude and radius in miles"
+      operationId: "findLocationsWithLatLng"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "lat"
+        in: "query"
+        description: "latitude"
+        required: true
+        type: "number"
+        format: "double"
+      - name: "long"
+        in: "query"
+        description: "longitude"
+        required: true
+        type: "number"
+        format: "double"
+      - name: "radius"
+        in: "query"
+        description: "radius in miles"
+        required: true
+        type: "number"
+        format: "double"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Location"
+        400:
+          description: "Invalid tag value"
+definitions:
+  Location:
+    type: "object"
+    required:
+    - "name"
+    - "photoUrls"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+        example: "doggie"
+      latitude:
+        type: "number"
+        format: "double"
+      longitude:
+        type: "number"
+        format: "double"
+      text:
+        type: "string"
+        description: "free form text to display"
