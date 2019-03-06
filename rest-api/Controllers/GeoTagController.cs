@@ -8,7 +8,7 @@ namespace rest_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class GeoTagController : ControllerBase
     {
         // GET api/values
         [HttpGet]
