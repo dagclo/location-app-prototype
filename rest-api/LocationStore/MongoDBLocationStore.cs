@@ -18,26 +18,45 @@ namespace rest_api.LocationStore
 
     public class MongoDBLocationDocument
     {
+        public MongoDBLocationDocument(string id, string text, double longitude, double latitude)
+        {
+            Id = id;
+            Text = text;
+            this.Coordinates = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(new GeoJson2DGeographicCoordinates(longitude, latitude));
+        }
+
         public string Id { get; set; }
 
         public GeoJsonPoint<GeoJson2DGeographicCoordinates> Coordinates { get; set; }
+        public string Text { get; set; }
+
+        public Location ToLocation()
+        {
+            return new Location(Id, Text, Coordinates.Coordinates.Latitude, Coordinates.Coordinates.Longitude);
+        }
     }
 
-    public class MongoDBLocationStore : ILocationStore
+    public interface IMongoClientFactory
     {
-        private readonly string _connection;
-        private readonly string _dbName;
-        private readonly string _collectionName;
-        private readonly string _indexName;
-        private const string _locationIndexName = "locationIndex";
+        IMongoClient GetClient();
 
-        public MongoDBLocationStore(MongoDBLocationStoreConfiguration configuration)
+        IMongoCollection<MongoDBLocationDocument> GetCollection();
+
+        string Create2dSphereIndex();
+    }
+
+    public class MongoClientFactory : IMongoClientFactory
+    {
+        private readonly MongoDBLocationStoreConfiguration _configuration;
+        private string _indexName;
+
+        public MongoClientFactory(MongoDBLocationStoreConfiguration configuration)
         {
-            _connection = configuration.MONGO_DB_CONNECTION;
-            _dbName = configuration.MONGO_DB_NAME;
-            _collectionName = configuration.MONGO_DB_COLLECTION_NAME;
-            var collection = GetCollection();
+            _configuration = configuration;
+        }
 
+        public string Create2dSphereIndex()
+        {
             //TODO: check if index exists before creating it
             //var indexEnumerator = collection.Indexes.ListAsync().GetAwaiter().GetResult();
             //bool foundIndex = false;
@@ -52,28 +71,50 @@ namespace rest_api.LocationStore
 
             var keys = Builders<MongoDBLocationDocument>.IndexKeys.Geo2DSphere(l => l.Coordinates);
             var model = new CreateIndexModel<MongoDBLocationDocument>(keys);
+            var collection = GetCollection();
             _indexName = collection.Indexes.CreateOne(model);
-            
+            return _indexName;
         }
 
-        private IMongoCollection<MongoDBLocationDocument> GetCollection()
+        public IMongoClient GetClient()
         {
-            var mongoClient = new MongoClient(_connection);
-            var db = mongoClient.GetDatabase(_dbName);
-            
-            var collection = db.GetCollection<MongoDBLocationDocument>(_collectionName);
-            
-            return collection;
+            return new MongoClient(_configuration.MONGO_DB_CONNECTION);
         }
 
-        public Task<bool> DeleteAsync(string id)
+        public IMongoCollection<MongoDBLocationDocument> GetCollection()
         {
-            throw new NotImplementedException();
+            var client = GetClient();
+            return client.GetDatabase(_configuration.MONGO_DB_NAME).GetCollection<MongoDBLocationDocument>(_configuration.MONGO_DB_COLLECTION_NAME);
+        }
+    }
+
+    public class MongoDBLocationStore : ILocationStore
+    {
+        private readonly IMongoClientFactory _factory;
+        private FilterDefinition<MongoDBLocationDocument> CreateIdFilter(string id)
+        {
+            return Builders<MongoDBLocationDocument>.Filter.Eq<string>(d => d.Id, id);
         }
 
-        public Task<Location> GetAsync(string id)
+        public MongoDBLocationStore(IMongoClientFactory factory)
         {
-            throw new NotImplementedException();
+            _factory = factory;
+            _factory.Create2dSphereIndex();
+        }
+
+        public async Task<bool> DeleteAsync(string id)
+        {
+            var collection = _factory.GetCollection();
+            var result =await collection.DeleteOneAsync(CreateIdFilter(id));
+            return result.IsAcknowledged;
+        }
+
+        public async Task<Location> GetAsync(string id)
+        {
+            var collection = _factory.GetCollection();
+            var doc = await collection.FindAsync(CreateIdFilter(id));
+
+            return doc.FirstOrDefault()?.ToLocation();
         }
 
         public Task<IEnumerable<Location>> SearchAsync(double latitude, double longitude, double radiusInMiles)
@@ -81,9 +122,11 @@ namespace rest_api.LocationStore
             throw new NotImplementedException();
         }
 
-        public Task<string> StoreAsync(Location location)
+        public async Task<string> StoreAsync(Location location)
         {
-            throw new NotImplementedException();
+            var collection = _factory.GetCollection();
+            await collection.InsertOneAsync(location.ToDocument());
+            return location.Id;
         }
     }
 }
