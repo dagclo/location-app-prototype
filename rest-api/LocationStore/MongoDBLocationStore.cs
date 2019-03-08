@@ -113,13 +113,16 @@ namespace rest_api.LocationStore
         {
             var collection = _factory.GetCollection();
             var doc = await collection.FindAsync(CreateIdFilter(id));
-
             return doc.FirstOrDefault()?.ToLocation();
         }
 
-        public Task<IEnumerable<Location>> SearchAsync(double latitude, double longitude, double radiusInMiles)
+        public async Task<IEnumerable<Location>> SearchAsync(double latitude, double longitude, double radiusInMiles, int limit)
         {
-            throw new NotImplementedException();
+            var collection = _factory.GetCollection();
+            var point = GeoJson.Point(GeoJson.Geographic(longitude, latitude));
+            var locFilter = Builders<MongoDBLocationDocument>.Filter.Near(x => x.Coordinates, point, radiusInMiles.ToMeters());
+            var query = collection.Find(locFilter).Limit(limit);
+            return (await query.ToListAsync()).Select(d => d.ToLocation());
         }
 
         public async Task<string> StoreAsync(Location location)
@@ -127,6 +130,14 @@ namespace rest_api.LocationStore
             var collection = _factory.GetCollection();
             await collection.InsertOneAsync(location.ToDocument());
             return location.Id;
+        }
+    }
+
+    public static class DistanceConversions
+    {
+        public static double ToMeters(this double miles)
+        {
+            return miles * 1609.34;
         }
     }
 }

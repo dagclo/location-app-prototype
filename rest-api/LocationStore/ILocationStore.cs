@@ -8,6 +8,6 @@ namespace rest_api.Controllers
         Task<string> StoreAsync(Location location);
         Task<bool> DeleteAsync(string id);
         Task<Location> GetAsync(string id);
-        Task<IEnumerable<Location>> SearchAsync(double latitude, double longitude, double radiusInMiles);
+        Task<IEnumerable<Location>> SearchAsync(double latitude, double longitude, double radiusInMiles, int limit);
     }
 }
