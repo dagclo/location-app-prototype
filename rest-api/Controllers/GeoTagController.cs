@@ -3,43 +3,61 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace rest_api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("location")]
     [ApiController]
     public class GeoTagController : ControllerBase
     {
-        // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        private readonly ILocationStore _locationStore;
+        private readonly ILogger<GeoTagController> _logger;
+
+        public GeoTagController(ILocationStore locationStore, ILogger<GeoTagController> logger)
         {
-            return new string[] { "value1", "value2" };
+            _locationStore = locationStore;
+            _logger = logger;
+        }
+
+        // GET api/values
+        [HttpGet("findByCoordinates")]
+        public async Task<IEnumerable<string>> Search([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusInMiles)
+        {
+            _logger.LogDebug(" searching for location {miles} from {lat},{long}", radiusInMiles, latitude, longitude);
+            IEnumerable<Location> locations = await _locationStore.SearchAsync(latitude, longitude, radiusInMiles);
+            return locations.Select(l => l.Id);
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public async Task<ActionResult<Location>> Get(string id)
         {
-            return "value";
+            _logger.LogDebug(" retrieving {location}", id.ToString());
+            Location location = await _locationStore.GetAsync(id);
+            return location;
         }
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult<dynamic>> Post([FromBody] Location location)
         {
-        }
+            _logger.LogDebug("storing location {location}", location.ToString());
+            
+            string storeId = await _locationStore.StoreAsync(location);
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
+            return new { location_id = storeId };
         }
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult<bool>> Delete(string id)
         {
+            _logger.LogDebug(" deleting {location}", id.ToString());
+
+            bool deleted = await _locationStore.DeleteAsync(id);
+
+            return deleted;
         }
     }
 }

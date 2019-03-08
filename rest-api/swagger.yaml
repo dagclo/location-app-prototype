@@ -45,7 +45,7 @@ paths:
     get:
       tags:
       - "location"
-      summary: "Find pet by ID"
+      summary: "Find location by ID"
       description: "Returns a Location and its data"
       operationId: "getLocationById"
       produces:
