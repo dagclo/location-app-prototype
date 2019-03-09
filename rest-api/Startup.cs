@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using rest_api.Controllers;
+using rest_api.LocationStore;
 
 namespace rest_api
 {
@@ -26,6 +28,11 @@ namespace rest_api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            var mongoConfig = new MongoDBLocationStoreConfiguration();
+            Configuration.Bind(mongoConfig);
+            services.AddSingleton(mongoConfig)
+                .AddSingleton<IMongoClientFactory, MongoClientFactory>()
+                .AddSingleton<ILocationStore, MongoDBLocationStore>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
