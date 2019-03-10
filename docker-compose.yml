@@ -4,9 +4,12 @@ services:
         build: ./rest-api
         container_name: "location-api-prototype"
         environment:
-            NODE_ENV: development            
-            MONGO_INITDB_ROOT_USERNAME: root
+            NODE_ENV: development         
+            MONGO_INITDB_ROOT_USERNAME: root@admin
             MONGO_INITDB_ROOT_PASSWORD: example
+            MONGO_DB_CONNECTION: mongodb://mongo:27017/local
+            MONGO_DB_NAME: local
+            MONGO_DB_COLLECTION_NAME: locationPrototypeCollection
         ports:
             - 5000:5000
         links:

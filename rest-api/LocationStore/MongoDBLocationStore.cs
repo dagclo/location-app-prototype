@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using MongoDB.Driver.GeoJsonObjectModel;
 using rest_api.Controllers;
 using System;
@@ -50,11 +51,13 @@ namespace rest_api.LocationStore
     public class MongoClientFactory : IMongoClientFactory
     {
         private readonly MongoDBLocationStoreConfiguration _configuration;
+        private readonly ILogger<MongoClientFactory> _logger;
         private string _indexName;
 
-        public MongoClientFactory(MongoDBLocationStoreConfiguration configuration)
+        public MongoClientFactory(MongoDBLocationStoreConfiguration configuration, ILogger<MongoClientFactory> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public string Create2dSphereIndex()
@@ -80,7 +83,11 @@ namespace rest_api.LocationStore
 
         public IMongoClient GetClient()
         {
-            return new MongoClient(_configuration.MONGO_DB_CONNECTION);
+            _logger.LogInformation("connecting with {connection_string} and creds {username}", _configuration.MONGO_DB_CONNECTION, _configuration.MONGO_INITDB_ROOT_USERNAME);
+            var credential = MongoCredential.CreateCredential(_configuration.MONGO_DB_NAME, _configuration.MONGO_INITDB_ROOT_USERNAME, _configuration.MONGO_INITDB_ROOT_PASSWORD);
+            var settings = MongoClientSettings.FromConnectionString(_configuration.MONGO_DB_CONNECTION);
+            settings.Credential = credential;
+            return new MongoClient(settings);
         }
 
         public IMongoCollection<MongoDBLocationDocument> GetCollection()
