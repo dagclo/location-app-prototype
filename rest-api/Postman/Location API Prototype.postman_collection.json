@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "969ef585-553d-491b-888a-39c4698195d9",
+		"name": "Location API Prototype",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "POST White Chuck River Fork",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": 0,\r\n  \"name\": \"the river\",\r\n  \"latitude\": 48.071082,\r\n  \"longitude\": -121.151189,\r\n  \"text\": \"we found it here\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "http://localhost:5000/location",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"location"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Into the Woods",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": 0,\r\n  \"name\": \"good photo spot\",\r\n  \"latitude\": 48.070465,\r\n  \"longitude\": -121.147734,\r\n  \"text\": \"They took pictures\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "http://localhost:5000/location",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"location"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "find coordinates in a mile range",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4935f53b-a952-4f52-b5cc-83616a72a276",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:5000/location/findByCoordinates?latitude=48.070945&longitude=-121.150041&radiusInMiles=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"location",
+						"findByCoordinates"
+					],
+					"query": [
+						{
+							"key": "latitude",
+							"value": "48.070945"
+						},
+						{
+							"key": "longitude",
+							"value": "-121.150041"
+						},
+						{
+							"key": "radiusInMiles",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
