@@ -22,11 +22,11 @@ namespace rest_api.Controllers
 
         // GET api/values
         [HttpGet("findByCoordinates")]
-        public async Task<IEnumerable<string>> Search([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusInMiles, [FromQuery] int limit = 10)
+        public async Task<IEnumerable<Location>> Search([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusInMiles, [FromQuery] int limit = 10)
         {
             _logger.LogDebug(" searching for location {miles} from {lat},{long}", radiusInMiles, latitude, longitude);
             IEnumerable<Location> locations = await _locationStore.SearchAsync(latitude, longitude, radiusInMiles, limit);
-            return locations.Select(l => l.Id);
+            return locations;
         }
 
         // GET api/values/5
